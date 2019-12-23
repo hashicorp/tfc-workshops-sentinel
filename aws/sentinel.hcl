@@ -1,3 +1,3 @@
 policy "enforce-mandatory-tags" {
-    enforcement_level = "advisory"
+    enforcement_level = "soft-mandatory"
 }
