@@ -77,7 +77,8 @@ validate_cidr_blocks = func() {
       if r.applied.type is "ingress" and
          r.applied.cidr_blocks else null is not null and
          types.type_of(r.applied.cidr_blocks) is "list" and
-         r.applied.cidr_blocks contains "0.0.0.0/0" {
+         r.applied.cidr_blocks contains "0.0.0.0/0" and
+         r.applied.to_port != 22 {
         print("Security group rule", address, "of type ingress",
               "contains disallowed cidr_block 0.0.0.0/0" )
         validated = false
