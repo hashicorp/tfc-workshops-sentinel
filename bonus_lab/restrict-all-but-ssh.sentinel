@@ -1,6 +1,6 @@
 # This policy uses the Sentinel tfplan import to validate that no security group
 # rules have the CIDR "0.0.0.0/0".  It covers both the aws_security_group and
-# the aws_security_group_rule resources.
+# the aws_security_group_rule resources. An exception to this is made for port 22 (SSH).
 
 ##### Imports #####
 
@@ -134,7 +134,8 @@ validate_cidr_blocks = func() {
             # before checking whether it contains "0.0.0.0/0"
             if i.cidr_blocks else null is not null and
                types.type_of(i.cidr_blocks) is "list" and
-               i.cidr_blocks contains "0.0.0.0/0" {
+               i.cidr_blocks contains "0.0.0.0/0" and
+               i.to_port != 22 {
               print("Ingress block #", ingress_count, "of security group",
                     address, "contains disallowed cidr_block 0.0.0.0/0" )
               validated = false
