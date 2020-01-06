@@ -1,0 +1,165 @@
+# This policy uses the Sentinel tfplan import to validate that no security group
+# rules have the CIDR "0.0.0.0/0".  It covers both the aws_security_group and
+# the aws_security_group_rule resources.
+
+##### Imports #####
+
+import "tfplan"
+import "strings"
+import "types"
+
+##### Functions #####
+
+# Find all resources of a specific type from all modules using the tfplan import
+find_resources_from_plan = func(type) {
+
+  resources = {}
+
+  # Iterate over all modules in the tfplan import
+  for tfplan.module_paths as path {
+    # Iterate over the named resources of desired type in the module
+    for tfplan.module(path).resources[type] else {} as name, instances {
+      # Iterate over resource instances
+      for instances as index, r {
+
+        # Get the address of the instance
+        if length(path) == 0 {
+          # root module
+          address = type + "." + name + "[" + string(index) + "]"
+        } else {
+          # non-root module
+          address = "module." + strings.join(path, ".module.") + "." +
+                    type + "." + name + "[" + string(index) + "]"
+        }
+
+        # Add the instance to resources map, setting the key to the address
+        resources[address] = r
+      }
+    }
+  }
+
+  return resources
+}
+
+# Validate that all AWS ingress security group rules
+# do not have cidr_block 0.0.0.0/0
+validate_cidr_blocks = func() {
+
+  validated = true
+
+  # Get all AWS security group rules
+  sgr_instances = find_resources_from_plan("aws_security_group_rule")
+
+  # Loop through the resource instances
+  for sgr_instances as address, r {
+
+    # Skip resources that are being destroyed
+    # to avoid unnecessary policy violations.
+    # Used to be: if length(r.diff) == 0
+    if r.destroy and not r.requires_new {
+      print("Skipping security group rule", address, "that is being destroyed.")
+      continue
+    }
+
+    # Determine if the attribute is computed
+    if (r.diff["type"].computed else false or
+        r.diff["cidr_blocks.#"].computed else false) is true {
+      print("Security group rule", address,
+            "has attributes, type and/or cidr_blocks that are computed.")
+      # If you want computed values to cause the policy to fail,
+      # uncomment the next line.
+      # validated = false
+    } else {
+      # Validate that each SG rule does not have disallowed value
+      # Since cidr_blocks is optional and could be computed,
+      # We check that it is present and really a list
+      # before checking whether it contains "0.0.0.0/0"
+      if r.applied.type is "ingress" and
+         r.applied.cidr_blocks else null is not null and
+         types.type_of(r.applied.cidr_blocks) is "list" and
+         r.applied.cidr_blocks contains "0.0.0.0/0" {
+        print("Security group rule", address, "of type ingress",
+              "contains disallowed cidr_block 0.0.0.0/0" )
+        validated = false
+      }
+    } // end computed check
+
+  } // end security group rule instances
+
+  # Get all AWS security groups
+  sg_instances = find_resources_from_plan("aws_security_group")
+
+  # Loop through the resource instances
+  for sg_instances as address, r {
+
+    # Skip resources that are being destroyed
+    # to avoid unnecessary policy violations.
+    # Used to be: if length(r.diff) == 0
+    if r.destroy and not r.requires_new {
+      print("Skipping security group", address, "that is being destroyed.")
+      continue
+    }
+
+    # Check if there are ingress blocks that are not computed
+    if (r.diff["ingress.#"].computed else false) is true {
+      print("Security group", address, "does not have any ingress blocks",
+            "or, they are computed.")
+      # If you want computed values to cause the policy to fail,
+      # uncomment the next line.
+      # validated = false
+    } else {
+      # Check if r.applied.ingress is a list (to be safe)
+      if types.type_of(r.applied.ingress) is "list" {
+
+        ingress_count = 0
+
+        for r.applied.ingress as i {
+
+          # Determine if ingress.<n>.cidr_blocks.# attribute is computed
+          # Note that this approach works for Terraform 0.12, but not
+          # for Terraform 0.11 which has diff expressions like
+          # "ingress.3167104115.cidr_blocks.#" rather than using 0, 1, 2
+          # after "ingress".
+          ingress_cidr_blocks = "ingress." + string(ingress_count) + ".cidr_blocks.#"
+          if (r.diff[ingress_cidr_blocks].computed else false) is true {
+            print("Ingress block #", ingress_count, "of security group",
+                  address, "has cidr_blocks that is computed.")
+            # If you want computed values to cause the policy to fail,
+            # uncomment the next line.
+            # validated = false
+          } else {
+            # Validate that the ingress rule does not have disallowed value
+            # Since cidr_blocks is optional and could be computed,
+            # We check that it is present and really a list
+            # before checking whether it contains "0.0.0.0/0"
+            if i.cidr_blocks else null is not null and
+               types.type_of(i.cidr_blocks) is "list" and
+               i.cidr_blocks contains "0.0.0.0/0" {
+              print("Ingress block #", ingress_count, "of security group",
+                    address, "contains disallowed cidr_block 0.0.0.0/0" )
+              validated = false
+            }
+          } // end cidr_blocks.# computed check
+
+          # increment ingress_count
+          ingress_count += 1
+
+        } // end ingress loop
+
+      } // end if r.applied.ingress a list
+    } // end if diff[ingress.#] computed
+
+  } // end security group instances
+
+  return validated
+}
+
+##### Rules #####
+
+# Call the validation function
+sgrs_validated = validate_cidr_blocks()
+
+# Main rule
+main = rule {
+  sgrs_validated
+}
