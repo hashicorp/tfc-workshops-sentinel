@@ -111,7 +111,7 @@ validate_attribute_contains_list = func(type, attribute, required_values) {
 ### List of mandatory tags ###
 mandatory_tags = [
   "Billable",
-  "Department"
+  "Department",
 ]
 
 ### Rules ###
