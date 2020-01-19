@@ -1,7 +1,7 @@
 # This policy uses the Sentinel tfplan import to require that all GCP compute
-# instances have all mandatory tags.
+# instances have all mandatory labels.
 
-# Note that the comparison is case-sensitive but also that Google network tags
+# Note that the comparison is case-sensitive but also that GCP labels
 # are only allowed to contain lowercase letters, numbers, and dashes.
 
 ##### Imports #####
@@ -104,8 +104,8 @@ validate_attribute_contains_list = func(type, attribute, required_values) {
 
 ### List of mandatory labels ###
 mandatory_labels = [
-  "Department",
-  "Billable",
+  "department",
+  "billable",
 ]
 
 ### Rules ###
