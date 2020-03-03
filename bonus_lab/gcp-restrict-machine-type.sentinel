@@ -85,7 +85,7 @@ validate_attribute_in_list = func(type, attribute, allowed_values) {
 # Allowed GCP Machine Types
 # You must use one of these machine types to be compliant.
 allowed_types = [
-  "n1-standard-1"
+  "n1-standard-1",
   "n1-standard-2",
 ]
 
