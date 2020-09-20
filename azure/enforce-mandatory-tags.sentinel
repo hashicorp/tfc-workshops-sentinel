@@ -4,9 +4,9 @@
 # Note that the comparison is case-sensitive even though Azure tags are not.
 # If you want to allow case variations, include them in your mandatory_tags list
 
-# Import common-functions/tfplan-functions/tfplan-functions.sentinel
-# with alias "plan"
+# Import Modules
 import "tfplan-functions" as plan
+import "find-resources" as find
 
 ### List of mandatory tags ###
 mandatory_tags = [
@@ -15,7 +15,7 @@ mandatory_tags = [
 ]
 
 # Get all Azure VMs
-allAzureVMs = plan.find_resources("azurerm_virtual_machine")
+allAzureVMs = find.find_resources("azurerm_virtual_machine")
 
 # Filter to Azure VMs with violations
 # Warnings will be printed for all violations since the last parameter is true
