@@ -4,9 +4,9 @@
 # Note that the comparison is case-sensitive but also that GCP labels
 # are only allowed to contain lowercase letters, numbers, and dashes.
 
-# Import common-functions/tfplan-functions/tfplan-functions.sentinel
-# with alias "plan"
+# Import Modules
 import "tfplan-functions" as plan
+import "find-resources" as find
 
 ### List of mandatory labels ###
 mandatory_labels = [
@@ -15,7 +15,7 @@ mandatory_labels = [
 ]
 
 # Get all GCP compute instances
-allGCEInstances = plan.find_resources("google_compute_instance")
+allGCEInstances = find.find_resources("google_compute_instance")
 
 # Filter to GCP compute instances with violations
 # Warnings will be printed for all violations since the last parameter is true

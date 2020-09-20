@@ -1,0 +1,17 @@
+# Function that finds all resources of a specified type that are being
+# created, updated, or read.
+
+# Standard tfplan/v2 import
+import "tfplan/v2" as tfplan
+
+find_resources = func(type) {
+  resources = filter tfplan.resource_changes as address, rc {
+  	rc.type is type and
+  	rc.mode is "managed" and
+  	(rc.change.actions contains "create" or
+     rc.change.actions contains "update" or
+     rc.change.actions contains "read")
+  }
+
+  return resources
+}
