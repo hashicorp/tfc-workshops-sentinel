@@ -1,16 +1,16 @@
 # This policy uses the Sentinel tfplan/v2 import to require that
 # all GCE instances have machine types from an allowed list
 
-# Import Modules
+# Import common-functions/tfplan-functions/tfplan-functions.sentinel
+# with alias "plan"
 import "tfplan-functions" as plan
-import "find-resources" as find
 
 # Allowed GCE Instance Types
 # Include "null" to allow missing or computed values
 allowed_types = ["n1-standard-1", "n1-standard-2", "n1-standard-4"]
 
 # Get all GCE instances
-allGCEInstances = find.find_resources("google_compute_instance")
+allGCEInstances = plan.find_resources("google_compute_instance")
 
 # Filter to GCE instances with violations
 # Warnings will be printed for all violations since the last parameter is true
