@@ -3,5 +3,5 @@ policy "enforce-mandatory-labels" {
 }
 
 module "tfplan-functions" {
-  source = "https://raw.githubusercontent.com/hashicorp/terraform-guides/master/governance/third-generation/common-functions/tfplan-functions/tfplan-functions.sentinel"
+  source = "https://raw.githubusercontent.com/hashicorp/terraform-sentinel-policies/main/common-functions/tfplan-functions/tfplan-functions.sentinel"
 }
