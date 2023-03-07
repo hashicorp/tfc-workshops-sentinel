@@ -15,7 +15,7 @@ mandatory_tags = [
 ]
 
 # Get all Azure VMs
-allAzureVMs = plan.find_resources("azurerm_virtual_machine")
+allAzureVMs = plan.find_resources("azurerm_linux_virtual_machine")
 
 # Filter to Azure VMs with violations
 # Warnings will be printed for all violations since the last parameter is true
