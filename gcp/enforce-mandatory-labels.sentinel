@@ -1,5 +1,8 @@
 # This policy uses the Sentinel tfplan import to require that all GCP compute
 # instances have all mandatory labels.
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 # Note that the comparison is case-sensitive but also that GCP labels
 # are only allowed to contain lowercase letters, numbers, and dashes.
